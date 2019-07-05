@@ -79,9 +79,8 @@ class CarController(object):
     self.braking = False
     self.brake_steady = 0.
     self.brake_last = 0.
-    #Clarity
-    #self.apply_brake_last = 0
-    #self.last_pump_ts = 0
+    self.apply_brake_last = 0
+    self.last_pump_ts = 0.
     self.packer = CANPacker(dbc_name)
     self.new_radar_config = False
 
