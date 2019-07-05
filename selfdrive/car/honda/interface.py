@@ -398,7 +398,7 @@ class CarInterface(object):
     # create message
     ret = car.CarState.new_message()
 
-    ret.canValid = can_rcv_valid and cam_rcv_valid and self.cp.can_valid
+    ret.canValid = can_rcv_valid and self.cp.can_valid #Clarity
 
     # speeds
     ret.vEgo = self.CS.v_ego
