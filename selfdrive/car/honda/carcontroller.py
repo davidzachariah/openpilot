@@ -170,7 +170,7 @@ class CarController(object):
       if (frame % 2) == 0:
         #Clarity
         idx = (frame / 2) % 4
-        ts = frame * DT_CTRL
+        #ts = frame * DT_CTRL
         #pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
         can_sends.extend(hondacan.create_brake_command(self.packer, apply_brake,
           pcm_override, pcm_cancel_cmd, hud.chime, hud.fcw, CS.CP.carFingerprint, idx))
