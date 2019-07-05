@@ -34,22 +34,22 @@ def actuator_hystereses(brake, braking, brake_steady, v_ego, car_fingerprint):
 
   return brake, braking, brake_steady
 
-#Clarity
-#def brake_pump_hysteresis(apply_brake, apply_brake_last, last_pump_ts, ts):
-#  pump_on = False
-#
-#  # reset pump timer if:
-#  # - there is an increment in brake request
-#  # - we are applying steady state brakes and we haven't been running the pump
-#  #   for more than 20s (to prevent pressure bleeding)
-#  if apply_brake > apply_brake_last or (ts - last_pump_ts > 20. and apply_brake > 0):
-#    last_pump_ts = ts
-#
-#  # once the pump is on, run it for at least 0.2s
-#  if ts - last_pump_ts < 0.2 and apply_brake > 0:
-#    pump_on = True
-#
-#  return pump_on, last_pump_ts
+
+def brake_pump_hysteresis(apply_brake, apply_brake_last, last_pump_ts, ts):
+  pump_on = False
+
+  # reset pump timer if:
+  # - there is an increment in brake request
+  # - we are applying steady state brakes and we haven't been running the pump
+  #   for more than 20s (to prevent pressure bleeding)
+  if apply_brake > apply_brake_last or (ts - last_pump_ts > 20. and apply_brake > 0):
+    last_pump_ts = ts
+
+  # once the pump is on, run it for at least 0.2s
+  if ts - last_pump_ts < 0.2 and apply_brake > 0:
+    pump_on = True
+
+  return pump_on, last_pump_ts
 
 
 def process_hud_alert(hud_alert):
