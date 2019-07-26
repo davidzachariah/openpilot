@@ -1,3 +1,4 @@
+from cereal import car #Clarity
 from collections import namedtuple
 from common.realtime import DT_CTRL
 from selfdrive.controls.lib.drive_helpers import rate_limit
@@ -126,7 +127,7 @@ class CarController(object):
     # **** process the car messages ****
 
     # *** compute control surfaces ***
-    BRAKE_MAX = 1024//4
+    BRAKE_MAX = 382 #Clarity
     if CS.CP.carFingerprint in (CAR.ACURA_ILX):
       STEER_MAX = 0xF00
     elif CS.CP.carFingerprint in (CAR.CRV, CAR.ACURA_RDX):
@@ -166,16 +167,24 @@ class CarController(object):
     else:
       # Send gas and brake commands.
       if (frame % 2) == 0:
-        idx = frame // 2
-        ts = frame * DT_CTRL
-        pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
-        can_sends.append(hondacan.create_brake_command(self.packer, apply_brake, pump_on,
-          pcm_override, pcm_cancel_cmd, hud.chime, hud.fcw, idx))
-        self.apply_brake_last = apply_brake
+        #Clarity
+        idx = (frame / 2) % 4
+        #ts = frame * DT_CTRL
+        #pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
+        can_sends.extend(hondacan.create_brake_command(self.packer, apply_brake,
+          pcm_override, pcm_cancel_cmd, hud.chime, hud.fcw, CS.CP.carFingerprint, idx))
+        #self.apply_brake_last = apply_brake
 
         if CS.CP.enableGasInterceptor:
           # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
           # This prevents unexpected pedal range rescaling
-          can_sends.append(create_gas_command(self.packer, apply_gas, idx))
+          can_sends.append(hondacan.create_gas_command(self.packer, apply_gas, idx))#Clarity
+
+      #Clarity
+      # radar at 20Hz, but these msgs need to be sent at 50Hz on ilx (seems like an Acura bug)
+      radar_send_step = 5
+      if (frame % radar_send_step) == 0:
+        idx = (frame/radar_send_step) % 4
+      can_sends.extend(hondacan.create_radar_commands(CS.v_ego, CS.CP.carFingerprint, self.new_radar_config, idx))
 
     return can_sends

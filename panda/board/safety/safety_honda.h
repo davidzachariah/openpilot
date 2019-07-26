@@ -206,7 +206,7 @@ const safety_hooks honda_hooks = {
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .ignition = default_ign_hook,
-  .fwd = honda_fwd_hook,
+  .fwd = default_fwd_hook, //Clarity
 };
 
 const safety_hooks honda_bosch_hooks = {
