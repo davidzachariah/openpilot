@@ -172,7 +172,7 @@ class CarController(object):
         ts = frame * DT_CTRL
         #pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
         can_sends.extend(hondacan.create_brake_command(self.packer, apply_brake,
-          pcm_override, pcm_cancel_cmd, hud.chime, hud.fcw, CS.CP.carFingerprint, idx, CS.CP.isPandaBlack))
+          pcm_override, pcm_cancel_cmd, hud.chime, hud.fcw, idx, CS.CP.carFingerprint, CS.CP.isPandaBlack))
         #self.apply_brake_last = apply_brake
 
         if CS.CP.enableGasInterceptor:
