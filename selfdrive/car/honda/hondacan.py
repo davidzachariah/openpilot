@@ -84,7 +84,6 @@ def create_steering_control(packer, apply_steer, lkas_active, car_fingerprint, i
 
 def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx):
   commands = []
-  bus = 0
   #Clarity
   if car_fingerprint == CAR.CLARITY:
     bus = 2
@@ -119,7 +118,6 @@ def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx):
     commands.append(packer.make_can_msg('LKAS_HUD', 2, lkas_hud_values, idx))
 
   if car_fingerprint in (CAR.CIVIC, CAR.ODYSSEY):
-
     radar_hud_values = {
       'ACC_ALERTS': hud.acc_alert,
       'LEAD_SPEED': 0x1fe,  # What are these magic values
