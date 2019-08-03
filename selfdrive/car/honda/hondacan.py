@@ -33,7 +33,7 @@ def create_brake_command(packer, apply_brake, pcm_override, pcm_cancel_cmd, chim
   brakelights = apply_brake > 0
   brake_rq = apply_brake > 0
   pcm_fault_cmd = False
-  bus = 0  #Clarity
+
   #Clarity
   if car_fingerprint == CAR.CLARITY:
     bus = 2
