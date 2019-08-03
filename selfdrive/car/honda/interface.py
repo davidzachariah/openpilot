@@ -81,7 +81,7 @@ class CarInterface(object):
     self.brake_pressed_prev = False
 
     self.cp = get_can_parser(CP)
-    self.cp_cam = get_cam_can_parser(CP)
+    #self.cp_cam = get_cam_can_parser(CP) #Clarity
 
     # *** init the major players ***
     self.CS = CarState(CP)
@@ -168,7 +168,7 @@ class CarInterface(object):
       ret.mass = CivicParams.MASS
       ret.wheelbase = CivicParams.WHEELBASE
       ret.centerToFront = CivicParams.CENTER_TO_FRONT
-      ret.steerRatio = 15.38  # 10.93 is end-to-end spec
+      ret.steerRatio = 14.63  # 10.93 is end-to-end spec
       tire_stiffness_factor = 1.
       # Civic at comma has modified steering FW, so different tuning for the Neo in that car
       is_fw_modified = os.getenv("DONGLE_ID") in ['99c94dc769b5d96e']
@@ -180,7 +180,20 @@ class CarInterface(object):
       ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5]
       ret.longitudinalTuning.kiBP = [0., 35.]
       ret.longitudinalTuning.kiV = [0.54, 0.36]
-
+ 
+    elif candidate == CAR.CLARITY:
+      stop_and_go = True
+      ret.mass = 4052. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.wheelbase = 2.75
+      ret.centerToFront = ret.wheelbase * 0.4
+      ret.steerRatio = 16.00  # guessing 12.72 is end-to-end spec
+      tire_stiffness_factor = 1.
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
+      ret.longitudinalTuning.kpBP = [0., 5., 35.]
+      ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5]
+      ret.longitudinalTuning.kiBP = [0., 35.]
+      ret.longitudinalTuning.kiV = [0.54, 0.36]
+ 
     elif candidate in (CAR.ACCORD, CAR.ACCORD_15, CAR.ACCORDH):
       stop_and_go = True
       if not candidate == CAR.ACCORDH: # Hybrid uses same brake msg as hatch
@@ -188,7 +201,7 @@ class CarInterface(object):
       ret.mass = 3279. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.83
       ret.centerToFront = ret.wheelbase * 0.39
-      ret.steerRatio = 16.33  # 11.82 is spec end-to-end
+      ret.steerRatio = 15.96  # 11.82 is spec end-to-end
       tire_stiffness_factor = 0.8467
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -214,7 +227,7 @@ class CarInterface(object):
       ret.mass = 3572. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.62
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 16.89         # as spec
+      ret.steerRatio = 15.3         # as spec
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -294,7 +307,7 @@ class CarInterface(object):
       ret.mass = 4204. * CV.LB_TO_KG + STD_CARGO_KG # average weight
       ret.wheelbase = 2.82
       ret.centerToFront = ret.wheelbase * 0.428 # average weight distribution
-      ret.steerRatio = 17.25         # as spec
+      ret.steerRatio = 16.0         # as spec
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.38], [0.11]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -362,9 +375,9 @@ class CarInterface(object):
   def update(self, c, can_strings):
     # ******************* do can recv *******************
     self.cp.update_strings(int(sec_since_boot() * 1e9), can_strings)
-    self.cp_cam.update_strings(int(sec_since_boot() * 1e9), can_strings)
+    #self.cp_cam.update_strings(int(sec_since_boot() * 1e9), can_strings) #Clarity
 
-    self.CS.update(self.cp, self.cp_cam)
+    self.CS.update(self.cp) #Clarity
 
     # create message
     ret = car.CarState.new_message()
@@ -470,9 +483,10 @@ class CarInterface(object):
 
     # events
     events = []
-    # wait 1.0s before throwing the alert to avoid it popping when you turn off the car
-    if self.cp_cam.can_invalid_cnt >= 100 and self.CS.CP.carFingerprint not in HONDA_BOSCH and self.CP.enableCamera:
-      events.append(create_event('invalidGiraffeHonda', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
+#Clarity
+#    # wait 1.0s before throwing the alert to avoid it popping when you turn off the car
+#    if self.cp_cam.can_invalid_cnt >= 100 and self.CS.CP.carFingerprint not in HONDA_BOSCH and self.CP.enableCamera:
+#      events.append(create_event('invalidGiraffeHonda', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
     if self.CS.steer_error:
       events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
     elif self.CS.steer_warning:

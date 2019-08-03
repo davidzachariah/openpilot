@@ -1,6 +1,7 @@
 import struct
+import common.numpy_fast as np #Clarity
 from selfdrive.config import Conversions as CV
-from selfdrive.car.honda.values import CAR, HONDA_BOSCH
+from selfdrive.car.honda.values import CAR, HONDA_BOSCH, VEHICLE_STATE_MSG #Clarity
 
 # *** Honda specific ***
 def can_cksum(mm):
@@ -26,12 +27,29 @@ def get_pt_bus(car_fingerprint, is_panda_black):
 def get_lkas_cmd_bus(car_fingerprint, is_panda_black):
   return 2 if car_fingerprint in HONDA_BOSCH and not is_panda_black else 0
 
-
-def create_brake_command(packer, apply_brake, pump_on, pcm_override, pcm_cancel_cmd, chime, fcw, idx, car_fingerprint, is_panda_black):
+#Clarity
+def make_can_msg(addr, dat, idx, alt):
+  if idx is not None:
+    dat += chr(idx << 4)
+    dat = fix(dat, addr)
+  return [addr, 0, dat, alt]
+ #Clarity
+def create_brake_command(packer, apply_brake, pcm_override, pcm_cancel_cmd, chime, fcw, idx, car_fingerprint, is_panda_black):
   # TODO: do we loose pressure if we keep pump off for long?
+  commands = []  #Clarity
+  pump_on = apply_brake > 0  #Clarity
   brakelights = apply_brake > 0
   brake_rq = apply_brake > 0
   pcm_fault_cmd = False
+
+  #Clarity
+  if car_fingerprint == CAR.CLARITY:
+    bus = 2
+    # This a bit of a hack but clarity brake msg flows into the last byte so
+    # rather than change the fix() function just set accordingly here.
+    apply_brake >>= 1
+    if apply_brake & 1:
+      idx += 0x8
 
   values = {
     "COMPUTER_BRAKE": apply_brake,
@@ -46,23 +64,39 @@ def create_brake_command(packer, apply_brake, pump_on, pcm_override, pcm_cancel_
     # TODO: Why are there two bits for fcw? According to dbc file the first bit should also work
     "FCW": fcw << 1,
   }
-  bus = get_pt_bus(car_fingerprint, is_panda_black)
-  return packer.make_can_msg("BRAKE_COMMAND", bus, values, idx)
+  #Clarity
+  #bus = get_pt_bus(car_fingerprint, is_panda_black)
+  #return packer.make_can_msg("BRAKE_COMMAND", bus, values, idx)
+  commands.append(packer.make_can_msg("BRAKE_COMMAND", bus, values, idx))
+  return commands
 
+#Clarity
+def create_gas_command(packer, gas_amount, idx):
+  enable = gas_amount > 0.001
+  values = {"ENABLE": enable}
+  if enable:
+    values["GAS_COMMAND"] = gas_amount * 255.
+    values["GAS_COMMAND2"] = gas_amount * 255.
+  return packer.make_can_msg("GAS_COMMAND", 0, values, idx)
 
 def create_steering_control(packer, apply_steer, lkas_active, car_fingerprint, idx, is_panda_black):
   values = {
     "STEER_TORQUE": apply_steer if lkas_active else 0,
     "STEER_TORQUE_REQUEST": lkas_active,
   }
-  bus = get_lkas_cmd_bus(car_fingerprint, is_panda_black)
+  #Clarity
+  #bus = get_lkas_cmd_bus(car_fingerprint, is_panda_black)
+  bus = 2
   return packer.make_can_msg("STEERING_CONTROL", bus, values, idx)
 
 
 def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, is_panda_black):
   commands = []
-  bus_pt = get_pt_bus(car_fingerprint, is_panda_black)
-  bus_lkas = get_lkas_cmd_bus(car_fingerprint, is_panda_black)
+  #Clarity
+  #bus_pt = get_pt_bus(car_fingerprint, is_panda_black)
+  bus_pt = 2
+  #bus_lkas = get_lkas_cmd_bus(car_fingerprint, is_panda_black)
+  bus_lkas = 2
 
   if car_fingerprint not in HONDA_BOSCH:
     acc_hud_values = {
@@ -97,11 +131,33 @@ def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, 
     commands.append(packer.make_can_msg('RADAR_HUD', bus_pt, radar_hud_values, idx))
   return commands
 
+#Clarity
+def create_radar_commands(v_ego, car_fingerprint, new_radar_config, idx):
+  """Creates an iterable of CAN messages for the radar system."""
+  commands = []
+  v_ego_kph = np.clip(int(round(v_ego * CV.MS_TO_KPH)), 0, 255)
+  speed = struct.pack('!B', v_ego_kph)
+
+  msg_0x300 = ("\xf9" + speed + "\x8a\xd0" +
+               ("\x20" if idx == 0 or idx == 3 else "\x00") +
+               "\x00\x00")
+  msg_0x301 = VEHICLE_STATE_MSG[car_fingerprint]
+
+  idx_0x300 = idx
+  if car_fingerprint == CAR.CIVIC:
+    idx_offset = 0xc if new_radar_config else 0x8   # radar in civic 2018 requires 0xc
+    idx_0x300 += idx_offset
+
+  commands.append(make_can_msg(0x300, msg_0x300, idx_0x300, 1))
+  commands.append(make_can_msg(0x301, msg_0x301, idx, 1))
+  return commands
 
 def spam_buttons_command(packer, button_val, idx, car_fingerprint, is_panda_black):
   values = {
     'CRUISE_BUTTONS': button_val,
     'CRUISE_SETTING': 0,
   }
-  bus = get_pt_bus(car_fingerprint, is_panda_black)
+  #Clarity
+  #bus = get_pt_bus(car_fingerprint, is_panda_black)
+  bus = 0
   return packer.make_can_msg("SCM_BUTTONS", bus, values, idx)

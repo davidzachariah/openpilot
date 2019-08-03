@@ -162,28 +162,29 @@ static void honda_bosch_init(int16_t param) {
   honda_alt_brake_msg = (param == 1) ? true : false;
 }
 
-static int honda_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
-  // fwd from car to camera. also fwd certain msgs from camera to car
-  // 0xE4 is steering on all cars except CRV and RDX, 0x194 for CRV and RDX,
-  // 0x1FA is brake control, 0x30C is acc hud, 0x33D is lkas hud,
-  // 0x39f is radar hud
-  int bus_fwd = -1;
-
-  if (bus_num == 0) {
-    bus_fwd = 2;
-  }
-  if (bus_num == 2) {
-    // block stock lkas messages and stock acc messages (if OP is doing ACC)
-    int addr = GET_ADDR(to_fwd);
-    int is_lkas_msg = (addr == 0xE4) || (addr == 0x194) || (addr == 0x33D);
-    int is_acc_msg = (addr == 0x1FA) || (addr == 0x30C) || (addr == 0x39F);
-    int block_fwd = is_lkas_msg || (is_acc_msg && long_controls_allowed);
-    if (!block_fwd) {
-      bus_fwd = 0;
-    }
-  }
-  return bus_fwd;
-}
+//Clarity
+//static int honda_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
+//  // fwd from car to camera. also fwd certain msgs from camera to car
+//  // 0xE4 is steering on all cars except CRV and RDX, 0x194 for CRV and RDX,
+//  // 0x1FA is brake control, 0x30C is acc hud, 0x33D is lkas hud,
+//  // 0x39f is radar hud
+//  int bus_fwd = -1;
+//
+//  if (bus_num == 0) {
+//    bus_fwd = 2;
+//  }
+//  if (bus_num == 2) {
+//    // block stock lkas messages and stock acc messages (if OP is doing ACC)
+//    int addr = GET_ADDR(to_fwd);
+//    int is_lkas_msg = (addr == 0xE4) || (addr == 0x194) || (addr == 0x33D);
+//    int is_acc_msg = (addr == 0x1FA) || (addr == 0x30C) || (addr == 0x39F);
+//    int block_fwd = is_lkas_msg || (is_acc_msg && long_controls_allowed);
+//    if (!block_fwd) {
+//      bus_fwd = 0;
+//    }
+//  }
+//  return bus_fwd;
+//}
 
 static int honda_bosch_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   int bus_fwd = -1;
@@ -209,7 +210,7 @@ const safety_hooks honda_hooks = {
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .ignition = default_ign_hook,
-  .fwd = honda_fwd_hook,
+  .fwd = default_fwd_hook, //Clarity
 };
 
 const safety_hooks honda_bosch_hooks = {
