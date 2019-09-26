@@ -63,17 +63,16 @@ def create_brake_command(packer, apply_brake, pcm_override, pcm_cancel_cmd, fcw,
     "CHIME": 0,
     # TODO: Why are there two bits for fcw? According to dbc file the first bit should also work
     "FCW": fcw << 1,
-    #NOT USED! Clarity
     "AEB_REQ_1": 0,
     "AEB_REQ_2": 0,
     "AEB_STATUS": 0,
-    #NOT USED! Clarity
   }
   #Clarity
   #bus = get_pt_bus(car_fingerprint, is_panda_black)
   #return packer.make_can_msg("BRAKE_COMMAND", bus, values, idx)
   commands.append(packer.make_can_msg("BRAKE_COMMAND", bus, values, idx))
   return commands
+
 
 def create_steering_control(packer, apply_steer, lkas_active, car_fingerprint, idx, is_panda_black):
   values = {

@@ -172,7 +172,7 @@ class CarController(object):
         if CS.CP.enableGasInterceptor:
           # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
           # This prevents unexpected pedal range rescaling
-          can_sends.append(hondacan.create_gas_command(self.packer, apply_gas, idx))#Clarity
+          can_sends.append(create_gas_command(self.packer, apply_gas, idx))
 
       #Clarity
       # radar at 20Hz, but these msgs need to be sent at 50Hz on ilx (seems like an Acura bug)
