@@ -174,11 +174,11 @@ class CarController(object):
           # This prevents unexpected pedal range rescaling
           can_sends.append(create_gas_command(self.packer, apply_gas, idx))
 
-      #Clarity
-      # radar at 20Hz, but these msgs need to be sent at 50Hz on ilx (seems like an Acura bug)
-      radar_send_step = 5
-      if (frame % radar_send_step) == 0:
-        idx = (frame/radar_send_step) % 4
-      can_sends.extend(hondacan.create_radar_commands(CS.v_ego, CS.CP.carFingerprint, self.new_radar_config, idx))
+#      #Clarity
+#      # radar at 20Hz, but these msgs need to be sent at 50Hz on ilx (seems like an Acura bug)
+#      radar_send_step = 5
+#      if (frame % radar_send_step) == 0:
+#        idx = (frame/radar_send_step) % 4
+#      can_sends.extend(hondacan.create_radar_commands(CS.v_ego, CS.CP.carFingerprint, self.new_radar_config, idx))
 
     return can_sends
