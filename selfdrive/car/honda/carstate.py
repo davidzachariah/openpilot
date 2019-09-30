@@ -246,7 +246,7 @@ class CarState(object):
     self.steer_error = cp.vl["STEER_STATUS"]['STEER_STATUS'] not in [0, 2, 3, 4, 6]
     self.steer_not_allowed = cp.vl["STEER_STATUS"]['STEER_STATUS']  not in [0, 4]  # 4 can be caused by bump OR steering nudge from driver
     self.steer_warning = cp.vl["STEER_STATUS"]['STEER_STATUS'] not in [0, 3, 4]   # 3 is low speed lockout, not worth a warning
-    if self.CP.carFingerprint == CAR.CLARITY: #Clarity
+    if self.CP.radarOffCan:
       self.brake_error = 0
     else:
       self.brake_error = cp.vl["STANDSTILL"]['BRAKE_ERROR_1'] or cp.vl["STANDSTILL"]['BRAKE_ERROR_2']
