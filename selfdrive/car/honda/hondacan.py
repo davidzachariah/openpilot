@@ -29,7 +29,7 @@ def get_lkas_cmd_bus(car_fingerprint, has_relay):
 #Clarity
 def make_can_msg(addr, dat, idx, alt):
   if idx is not None:
-    dat += chr(idx << 4)
+    dat += (int(idx) << 4).to_bytes(1,'little')
     dat = fix(dat, addr)
   return [addr, 0, dat, alt]
  #Clarity
@@ -132,9 +132,9 @@ def create_radar_commands(v_ego, car_fingerprint, new_radar_config, idx):
   v_ego_kph = np.clip(int(round(v_ego * CV.MS_TO_KPH)), 0, 255)
   speed = struct.pack('!B', v_ego_kph)
 
-  msg_0x300 = ("\xf9" + speed + "\x8a\xd0" +
-               ("\x20" if idx == 0 or idx == 3 else "\x00") +
-               "\x00\x00")
+  msg_0x300 = (b'\xf9' + speed + b'\x8a\xd0' +
+               (b'\x20' if idx == 0 or idx == 3 else b'\x00') +
+               b'\x00\x00')
   msg_0x301 = VEHICLE_STATE_MSG[car_fingerprint]
 
   idx_0x300 = idx
