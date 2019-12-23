@@ -83,7 +83,7 @@ class CarInterface(CarInterfaceBase):
     self.brake_pressed_prev = False
 
     self.cp = get_can_parser(CP)
-    #self.cp_cam = get_cam_can_parser(CP)
+    #self.cp_cam = get_cam_can_parser(CP) #Clarity
 
     # *** init the major players ***
     self.CS = CarState(CP)
