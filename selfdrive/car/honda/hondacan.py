@@ -1,10 +1,29 @@
 import common.numpy_fast as np #Clarity
 from selfdrive.config import Conversions as CV
-from selfdrive.car.honda.values import CAR, HONDA_BOSCH
+from selfdrive.car.honda.values import CAR, HONDA_BOSCH, VEHICLE_STATE_MSG #Clarity
 
+#Clarity
+# *** Honda specific ***
+def can_cksum(mm):
+  s = 0
+  for c in mm:
+    s += (c>>4)
+    s += c & 0xF
+  s = 8-s
+  s %= 0x10
+  return s
+
+#Clarity
+def fix(msg, addr):
+  msg2 = msg[0:-1] + (msg[-1] | can_cksum(struct.pack("I", addr)+msg)).to_bytes(1, 'little')
+  return msg2
 
 def get_pt_bus(car_fingerprint, has_relay):
   return 1 if car_fingerprint in HONDA_BOSCH and has_relay else 0
+
+
+def get_lkas_cmd_bus(car_fingerprint, has_relay):
+  return 2 if car_fingerprint in HONDA_BOSCH and not has_relay else 0
 
 #Clarity
 def make_can_msg(addr, dat, idx, alt):
@@ -12,14 +31,12 @@ def make_can_msg(addr, dat, idx, alt):
     dat += (int(idx) << 4).to_bytes(1,'little')
     dat = fix(dat, addr)
   return [addr, 0, dat, alt]
-def get_lkas_cmd_bus(car_fingerprint, has_relay):
-  return 2 if car_fingerprint in HONDA_BOSCH and not has_relay else 0
 
  #Clarity
 def create_brake_command(packer, apply_brake, pcm_override, pcm_cancel_cmd, fcw, idx, car_fingerprint, has_relay, stock_brake):
   # TODO: do we loose pressure if we keep pump off for long?
-  commands = []  #Clarity
-  pump_on = apply_brake > 0  #Clarity
+  commands = [] #Clarity
+  pump_on = apply_brake > 0 #Clarity
   brakelights = apply_brake > 0
   brake_rq = apply_brake > 0
   pcm_fault_cmd = False
@@ -48,6 +65,7 @@ def create_brake_command(packer, apply_brake, pcm_override, pcm_cancel_cmd, fcw,
     "AEB_REQ_2": 0,
     "AEB_STATUS": 0,
   }
+
   #Clarity
   #bus = get_pt_bus(car_fingerprint, has_relay)
   #return packer.make_can_msg("BRAKE_COMMAND", bus, values, idx)

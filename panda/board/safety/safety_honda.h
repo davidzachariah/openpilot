@@ -132,9 +132,10 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
       tx = 0;
     }
   }
-  if (!honda_bosch_hardware && !addr_allowed(addr, bus, HONDA_N_TX_MSGS, sizeof(HONDA_N_TX_MSGS)/sizeof(HONDA_N_TX_MSGS[0]))) {
-    tx = 0;
-  }
+  //Clarity - keep tx = 1;
+  //if (!honda_bosch_hardware && !addr_allowed(addr, bus, HONDA_N_TX_MSGS, sizeof(HONDA_N_TX_MSGS)/sizeof(HONDA_N_TX_MSGS[0]))) {
+  //  tx = 0;
+  //}
 
   if (relay_malfunction) {
     tx = 0;

@@ -376,12 +376,12 @@ class CarState():
     if self.CP.carFingerprint in HONDA_BOSCH:
       self.stock_aeb = bool(cp_cam.vl["ACC_CONTROL"]["AEB_STATUS"] and cp_cam.vl["ACC_CONTROL"]["ACCEL_COMMAND"] < -1e-5)
     else:
-      self.stock_aeb = bool(cp_cam.vl["BRAKE_COMMAND"]["AEB_REQ_1"] and cp_cam.vl["BRAKE_COMMAND"]["COMPUTER_BRAKE"] > 1e-5)
+      self.stock_aeb = bool(0) #Clarity
 
     if self.CP.carFingerprint in HONDA_BOSCH:
       self.stock_hud = False
       self.stock_fcw = False
-    else:
-      self.stock_fcw = bool(cp_cam.vl["BRAKE_COMMAND"]["FCW"] != 0)
-      self.stock_hud = cp_cam.vl["ACC_HUD"]
-      self.stock_brake = cp_cam.vl["BRAKE_COMMAND"]
+    else: #Clarity
+      self.stock_fcw = bool(0) #Clarity
+      self.stock_hud = 0 #Clarity
+      self.stock_brake = 0 #Clarity
