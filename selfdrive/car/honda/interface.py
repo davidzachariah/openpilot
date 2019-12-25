@@ -172,7 +172,6 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = CivicParams.CENTER_TO_FRONT
       ret.steerRatio = 15.38  # 10.93 is end-to-end spec
       tire_stiffness_factor = 1.
-
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
       ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5]
@@ -386,14 +385,14 @@ class CarInterface(CarInterfaceBase):
   def update(self, c, can_strings):
     # ******************* do can recv *******************
     self.cp.update_strings(can_strings)
-    #self.cp_cam.update_strings(can_strings) #Clarity
+    #self.cp_cam.update_strings(can_strings)
 
     self.CS.update(self.cp) #Clarity
 
     # create message
     ret = car.CarState.new_message()
 
-    ret.canValid = self.cp.can_valid #Clarity
+    ret.canValid = self.cp.can_valid
 
     # speeds
     ret.vEgo = self.CS.v_ego
