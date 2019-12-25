@@ -133,7 +133,7 @@ static int honda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
   }
   if (!honda_bosch_hardware && !addr_allowed(addr, bus, HONDA_N_TX_MSGS, sizeof(HONDA_N_TX_MSGS)/sizeof(HONDA_N_TX_MSGS[0]))) {
-    tx = 0;
+    tx = 1; //Clarity
   }
 
   if (relay_malfunction) {
@@ -212,7 +212,6 @@ static void honda_bosch_init(int16_t param) {
   honda_alt_brake_msg = (param == 1) ? true : false;
 }
 
-//Clarity
 //static int honda_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 //  // fwd from car to camera. also fwd certain msgs from camera to car
 //  // 0xE4 is steering on all cars except CRV and RDX, 0x194 for CRV and RDX,
