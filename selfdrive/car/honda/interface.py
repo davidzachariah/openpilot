@@ -191,6 +191,20 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 16.00  # was 17.03, 12.72 is end-to-end spec
       tire_stiffness_factor = 1.
 
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.24]]
+      ret.longitudinalTuning.kpBP = [0., 5., 35.]
+      ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5]
+      ret.longitudinalTuning.kiBP = [0., 35.]
+      ret.longitudinalTuning.kiV = [0.54, 0.36]
+ 
+    elif candidate == CAR.CLARITY: #Clarity: Just adding Clarity car parameters. -wirelessnet2
+      stop_and_go = True
+      ret.mass = 4052. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.wheelbase = 2.75
+      ret.centerToFront = ret.wheelbase * 0.4
+      ret.steerRatio = 16.00  # was 17.03, 12.72 is end-to-end spec
+      tire_stiffness_factor = 1.
+
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.12]] if eps_modified else [[0.8], [0.24]]
       ret.lateralTuning.pid.kf = 0.00006
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
