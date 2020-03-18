@@ -598,9 +598,9 @@ static void ui_update(UIState *s) {
       int ret = zmq_poll(polls, 1, 1000);
     #endif
     if (ret < 0) {
-      if (errno == EINTR || errno == EAGAIN) continue;
+      if (errno == EINTR) continue;
 
-      LOGE("poll failed (%d - %d)", ret, errno);
+      LOGW("poll failed (%d)", ret);
       close(s->ipc_fd);
       s->ipc_fd = -1;
       s->vision_connected = false;
