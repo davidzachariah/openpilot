@@ -1752,7 +1752,6 @@ static void do_autofocus(CameraState *s) {
   const float focus_kp = 0.005;
 
   float err = s->focus_err;
-  float offset = 0;
   float sag = (s->last_sag_acc_z/9.8) * 128;
 
   const int dac_up = s->device == DEVICE_LP3? 634:456;
@@ -2118,7 +2117,8 @@ void cameras_run(DualCameraState *s) {
 
     int ret = poll(fds, ARRAYSIZE(fds), 1000);
     if (ret <= 0) {
-      LOGE("poll failed (%d)", ret);
+      if (errno == EINTR || errno == EAGAIN) continue;
+      LOGE("poll failed (%d - %d)", ret, errno);
       break;
     }
 
