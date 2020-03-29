@@ -145,6 +145,10 @@ for c in FINGERPRINTS:
 
 # TODO: Figure out what is relevant
 FW_VERSIONS = {
+  CAR.CLARITY: {
+    (Ecu.vsa, 0x18da28f1, None): [b'57114-TRW-A020\x00\x00'],
+    (Ecu.eps, 0x18da30f1, None): [b'39990-TRW-A020\x00\x00'],
+  },
   CAR.ACCORD: {
     (Ecu.programmedFuelInjection, 0x18da10f1, None): [
       b'37805-6A0-A640\x00\x00',
@@ -680,7 +684,7 @@ DBC = {
   CAR.CIVIC: dbc_dict('honda_civic_touring_2016_can_generated', 'acura_ilx_2016_nidec'),
   CAR.CIVIC_BOSCH: dbc_dict('honda_civic_hatchback_ex_2017_can_generated', None),
   CAR.CIVIC_BOSCH_DIESEL: dbc_dict('honda_civic_sedan_16_diesel_2019_can_generated', None),
-  CAR.CLARITY: dbc_dict('honda_clarity_hybrid_2018_can_generated', 'honda_clarity_2016_nidec'),
+  CAR.CLARITY: dbc_dict('honda_clarity_hybrid_2018_can_generated', 'acura_ilx_2016_nidec'),
   CAR.CRV: dbc_dict('honda_crv_touring_2016_can_generated', 'acura_ilx_2016_nidec'),
   CAR.CRV_5G: dbc_dict('honda_crv_ex_2017_can_generated', None),
   CAR.CRV_EU: dbc_dict('honda_crv_executive_2016_can_generated', 'acura_ilx_2016_nidec'),
