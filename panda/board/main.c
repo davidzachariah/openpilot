@@ -122,21 +122,21 @@ void set_safety_mode(uint16_t mode, int16_t param) {
   }
   switch (mode_copy) {
     case SAFETY_SILENT:
-      set_intercept_relay(false);
+      set_intercept_relay(true); //Clarity: For Clarity, the Car Harness relay should ALWAYS be physically open, no exceptions. Otherwise the Main F-CANs are bridged. -wirelessnet2
       if (board_has_obd()) {
         current_board->set_can_mode(CAN_MODE_NORMAL);
       }
       can_silent = ALL_CAN_SILENT;
       break;
     case SAFETY_NOOUTPUT:
-      set_intercept_relay(false);
+      set_intercept_relay(true); //Clarity: For Clarity, the Car Harness relay should ALWAYS be physically open, no exceptions. Otherwise the Main F-CANs are bridged. -wirelessnet2
       if (board_has_obd()) {
         current_board->set_can_mode(CAN_MODE_NORMAL);
       }
       can_silent = ALL_CAN_LIVE;
       break;
     case SAFETY_ELM327:
-      set_intercept_relay(false);
+      set_intercept_relay(true); //Clarity: For Clarity, the Car Harness relay should ALWAYS be physically open, no exceptions. Otherwise the Main F-CANs are bridged. -wirelessnet2
       heartbeat_counter = 0U;
       if (board_has_obd()) {
         current_board->set_can_mode(CAN_MODE_OBD_CAN2);
@@ -232,6 +232,12 @@ void usb_cb_ep3_out(void *usbdata, int len, bool hardwired) {
 
     uint8_t bus_number = (to_push.RDTR >> 4) & CAN_BUS_NUM_MASK;
     can_send(&to_push, bus_number, false);
+  }
+}
+
+void usb_cb_ep3_out_complete() {
+  if (can_tx_check_min_slots_free(MAX_CAN_MSGS_PER_BULK_TRANSFER)) {
+    usb_outep3_resume_if_paused();
   }
 }
 
@@ -466,7 +472,17 @@ int usb_cb_control_msg(USB_Setup_TypeDef *setup, uint8_t *resp, bool hardwired) 
     case 0xde:
       if (setup->b.wValue.w < BUS_MAX) {
         can_speed[setup->b.wValue.w] = setup->b.wIndex.w;
-        can_init(CAN_NUM_FROM_BUS_NUM(setup->b.wValue.w));
+        bool ret = can_init(CAN_NUM_FROM_BUS_NUM(setup->b.wValue.w));
+        UNUSED(ret);
+      }
+      break;
+    // **** 0xdf: set unsafe mode
+    case 0xdf:
+      // you can only set this if you are in a non car safety mode
+      if ((current_safety_mode == SAFETY_SILENT) ||
+          (current_safety_mode == SAFETY_NOOUTPUT) ||
+          (current_safety_mode == SAFETY_ELM327)) {
+        unsafe_mode = setup->b.wValue.w;
       }
       break;
     // **** 0xe0: uart read

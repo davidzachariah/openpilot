@@ -16,10 +16,9 @@ class CarInterfaceBase():
     self.CP = CP
     self.VM = VehicleModel(CP)
 
+    self.hzCounter = 0
+
     self.frame = 0
-    self.gas_pressed_prev = False
-    self.brake_pressed_prev = False
-    self.cruise_enabled_prev = False
     self.low_speed_alert = False
 
     self.CS = CarState(CP)
@@ -81,7 +80,7 @@ class CarInterfaceBase():
   def apply(self, c):
     raise NotImplementedError
 
-  def create_common_events(self, cs_out, extra_gears=[], gas_resume_speed=-1):
+  def create_common_events(self, cs_out, extra_gears=[], gas_resume_speed=-1, pcm_enable=True):
     events = []
 
     if cs_out.doorOpen:
@@ -100,17 +99,33 @@ class CarInterfaceBase():
       events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
     # TODO: move this stuff to the capnp strut
-    if getattr(self.CS, "steer_error", False):
-      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
-    elif getattr(self.CS, "steer_warning", False):
+    if not cs_out.lkMode:
+      events.append(create_event('manualSteeringRequired', [ET.WARNING]))
+    elif getattr(self.CS, "steer_error", False) and cs_out.lkMode:
+      self.hzCounter += 1
+      if self.hzCounter > 300: #This will allow for LKAS Fault for 3 seconds before throwing error. -wirelessnet2
+        events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
+        self.hzCounter = 301 #Clamp the value of hzCounter -wirelessnet2
+    elif getattr(self.CS, "steer_warning", False) and cs_out.lkMode:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
+    if not getattr(self.CS, "steer_error", False):
+      self.hzCounter = 0
+
     # Disable on rising edge of gas or brake. Also disable on brake when speed > 0.
-    # Optionally allow to press gas at zero speed to resume.
+    # Optionally allow to press gas at zero speed to resume. 
     # e.g. Chrysler does not spam the resume button yet, so resuming with gas is handy. FIXME!
-    if (cs_out.gasPressed and (not self.gas_pressed_prev) and cs_out.vEgo > gas_resume_speed) or \
-       (cs_out.brakePressed and (not self.brake_pressed_prev or not cs_out.standstill)):
+    if (cs_out.brakePressed and (not self.CS.out.brakePressed or cs_out.vEgo > 0.001)):
       events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
+    if cs_out.cruiseState.enabled and (cs_out.gasPressed and not self.CS.out.gasPressed):
+      events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
+
+    # we engage when pcm is active (rising edge)
+    if pcm_enable:
+      if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
+        events.append(create_event('pcmEnable', [ET.ENABLE]))
+      elif not cs_out.cruiseState.enabled:
+        events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
     return events
 
@@ -133,6 +148,7 @@ class CarStateBase:
     self.CP = CP
     self.car_fingerprint = CP.carFingerprint
     self.cruise_buttons = 0
+    self.out = car.CarState.new_message()
 
     # Q = np.matrix([[10.0, 0.0], [0.0, 100.0]])
     # R = 1e3

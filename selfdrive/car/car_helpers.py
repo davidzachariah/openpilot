@@ -27,12 +27,17 @@ def load_interfaces(brand_names):
   for brand_name in brand_names:
     path = ('selfdrive.car.%s' % brand_name)
     CarInterface = __import__(path + '.interface', fromlist=['CarInterface']).CarInterface
-    if os.path.exists(BASEDIR + '/' + path.replace('.', '/') + '/carcontroller.py'):
-      CarController = __import__(path + '.carcontroller', fromlist=['CarController']).CarController
+
+    if os.path.exists(BASEDIR + '/' + path.replace('.', '/') + '/carstate.py'):
       CarState = __import__(path + '.carstate', fromlist=['CarState']).CarState
     else:
-      CarController = None
       CarState = None
+
+    if os.path.exists(BASEDIR + '/' + path.replace('.', '/') + '/carcontroller.py'):
+      CarController = __import__(path + '.carcontroller', fromlist=['CarController']).CarController
+    else:
+      CarController = None
+
     for model_name in brand_names[brand_name]:
       ret[model_name] = (CarInterface, CarController, CarState)
   return ret
@@ -65,30 +70,19 @@ def only_toyota_left(candidate_cars):
 
 
 # **** for use live only ****
-def fingerprint(logcan, sendcan, has_relay):
-  if has_relay:
-    # Vin query only reliably works thorugh OBDII
-    bus = 1
-
-    cached_params = Params().get("CarParamsCache")
-    if cached_params is not None:
-      cached_params = car.CarParams.from_bytes(cached_params)
-      if cached_params.carName == "mock":
-        cached_params = None
-
-    if cached_params is not None and len(cached_params.carFw) > 0 and cached_params.carVin is not VIN_UNKNOWN:
-      cloudlog.warning("Using cached CarParams")
-      vin = cached_params.carVin
-      car_fw = list(cached_params.carFw)
-    else:
-      cloudlog.warning("Getting VIN & FW versions")
-      _, vin = get_vin(logcan, sendcan, bus)
-      car_fw = get_fw_versions(logcan, sendcan, bus)
-
-    fw_candidates = match_fw_to_car(car_fw)
-  else:
-    vin = VIN_UNKNOWN
+def fingerprint(logcan, sendcan, has_relay): #I reworked a good portion of fingerprint code to MASSIVELY SPEED UP GET_FW_VERSIONS() and bring fingerprinting v2 and eps_modified detection to non-relay pandas and comma power-less relay panda installs. -wirelessnet2
+  # Vin query only reliably works thorugh OBDII
+  bus = 2
+  cloudlog.warning("Getting FW versions")
+  car_fw = get_fw_versions(logcan, sendcan, bus)
+  if car_fw is None:
     fw_candidates, car_fw = set(), []
+    print("WARNING: FW FINGERPRINTING FAILED")
+  print("Printing Car FWs:")
+  print(car_fw)
+  fw_candidates = match_fw_to_car(car_fw)
+
+  vin = VIN_UNKNOWN #I completely killed VIN collection because it's useless. -wirelessnet2
 
   cloudlog.warning("VIN %s", vin)
   Params().put("CarVin", vin)
